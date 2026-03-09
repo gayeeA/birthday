@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kovidha's Birthday Journey</title>
+<link rel="stylesheet" href="style.css">
+<link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600&family=Dancing+Script:wght@700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<canvas id="fireworks"></canvas>
+<canvas id="particleCanvas"></canvas>
+
+<audio id="music" src="music.mp3" loop></audio>
+<div id="musicToggle">🔈</div>
+
+<!-- PHASE 1: GIFT ENTRANCE -->
+<section id="phase1" class="active-phase">
+    <canvas id="stardustCanvas"></canvas>
+    <div class="nebula-bg"></div>
+    
+    <div id="giftBox" class="gift-container">
+        <div class="gift-lid" id="giftLid">
+            <div class="lid-main">
+                <div class="lid-ribbon-v"></div>
+                <div class="lid-ribbon-h"></div>
+        </div>
+        <div class="gift-box">
+            <div class="box-main">
+                <div class="box-ribbon-v"></div>
+                <div class="box-ribbon-h"></div>
+        </div>
+        <div class="gift-bow" id="giftBow">
+            <div class="bow-loop left-loop"></div>
+            <div class="bow-loop right-loop"></div>
+            <div class="bow-center"></div>
+            <div class="bow-tail left-tail"></div>
+            <div class="bow-tail right-tail"></div>
+        <div class="ribbon-segment segment-left"></div>
+        <div class="ribbon-segment segment-right"></div>
+    
+    <p class="gift-hint">Click the bow 🎀</p>
+    
+    <div id="musicModal" class="glass-modal">
+        <div class="modal-content">
+            <h2>Turn on the music to unlock the magic ✨</h2>
+            <div class="music-controls">
+                <span class="music-label">Music</span>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="musicToggle2">
+                    <span class="slider"></span>
+                </label>
+            </div>
+            <button id="beginJourneyBtn" class="begin-btn">Begin the Journey</button>
+        </div>
+    
+    <canvas id="bigBangCanvas"></canvas>
+</section>
+
+<!-- PHASE 2: STARDUST JOURNEY -->
+<div id="journey">
+<!-- Station 1 -->
+<section class="quote-station" data-station="1">
+<div class="rabbit-runner"></div>
+<h1>stardust</h1>
+<p class="type">In a world full of ordinary, you're a sprinkle of stardust.</p>
+<div class="row">
+<img src="images/image.jpg">
+<img src="images/image.jpg">
+<img src="images/image.jpg">
+</div>
+</section>
+
+<!-- Station 2 -->
+<section class="quote-station" data-station="2">
+<div class="rabbit-runner"></div>
+<h1>loved</h1>
+<p class="type">Thinking of all the reasons why you're so incredibly loved today.</p>
+<div class="row">
+<img src="images/image.jpg">
+<img src="images/image.jpg">
+<img src="images/image.jpg">
+</div>
+</section>
+
+<!-- Station 3 -->
+<section class="quote-station" data-station="3">
+<div class="rabbit-runner"></div>
+<h1>stay you</h1>
+<p class="type">Stay bright. Stay kind. Stay you.</p>
+<div class="row">
+<img src="images/image.jpg">
+<img src="images/image.jpg">
+<img src="images/image.jpg">
+</div>
+</section>
+
+<!-- Station 4 -->
+<section class="quote-station" data-station="4">
+<div class="rabbit-runner"></div>
+<h1>main character</h1>
+<p class="type">Another year of you being the main character. We love to see it.</p>
+<div class="row">
+<img src="images/image.jpg">
+<img src="images/image.jpg">
+<img src="images/image.jpg">
+</div>
+</section>
+
+<!-- Library Button -->
+<div class="continue-section">
+<button id="toLibraryBtn">📚 Open the Memory Library</button>
+</div>
+
+<!-- PHASE 3: MEMORY BOOK -->
+<section id="memory">
+    <div class="desk"><div class="lamp-shadow"></div>
+    <div class="bookshelf">
+        <div class="bookshelf-row">
+            <div class="book-spine">Adventure</div>
+            <div class="book-spine">Travel</div>
+            <div class="book-spine" id="memoriesBook">Kovidha's Memories</div>
+            <div class="book-spine">Poetry</div>
+            <div class="book-spine">Recipes</div>
+    </div>
+    <div class="book-wrapper">
+        <div class="book" id="book">
+            <div class="cover" id="bookCover" style="background-image: url('images/book.png'); background-size: cover;">
+                <div class="cover-overlay"></div>
+                <span class="open-hint">Click to Open</span>
+            </div>
+            <div class="pages" id="bookPages">
+                <div class="page active">
+                    <div class="page-content">
+                        <div class="polaroids">
+                            <img src="images/image.jpg">
+                            <img src="images/image.jpg">
+                            <img src="images/image.jpg">
+                        </div>
+                        <div class="book-controls">
+                            <button id="closeBook">Close Book</button>
+                            <span id="pageNumber">Page 1</span>
+                            <button id="nextPage">Next</button>
+                        </div>
+                </div>
+                <div class="page">
+                    <div class="page-content">
+                        <div class="polaroids">
+                            <img src="images/image.jpg">
+                            <img src="images/image.jpg">
+                            <img src="images/image.jpg">
+                        </div>
+                        <div class="book-controls">
+                            <button id="closeBook2">Close Book</button>
+                            <span id="pageNumber2">Page 2</span>
+                            <button id="nextPage2">Next</button>
+                        </div>
+                </div>
+                <div class="page">
+                    <div class="page-content">
+                        <div class="polaroids">
+                            <img src="images/image.jpg">
+                            <img src="images/image.jpg">
+                            <img src="images/image.jpg">
+                        </div>
+                        <div class="book-controls">
+                            <button id="closeBook3">Close Book</button>
+                            <span id="pageNumber3">Page 3</span>
+                            <button id="nextPage3">Next</button>
+                        </div>
+                </div>
+        </div>
+    <p class="caption">Collecting beautiful moments, one smile at a time.</p>
+</section>
+
+<!-- PHASE 4: HEART FINALE -->
+<section id="finale">
+    <canvas id="lanternCanvas"></canvas>
+    <div class="finale-hint">✨ Click on last photo for a surprise! ✨</div>
+    <div class="heart-container">
+        <div class="heart-grid">
+            <div class="heart-row">
+                <button class="heart-photo" data-index="0"><img src="images/image.jpg"></button>
+                <button class="heart-photo" data-index="1"><img src="images/image.jpg"></button>
+                <button class="heart-photo" data-index="2"><img src="images/image.jpg"></button>
+                <button class="heart-photo" data-index="3"><img src="images/image.jpg"></button>
+            </div>
+            <div class="heart-row">
+                <button class="heart-photo" data-index="4"><img src="images/image.jpg"></button>
+                <button class="heart-photo" data-index="5"><img src="images/image.jpg"></button>
+                <button class="heart-photo" data-index="6"><img src="images/image.jpg"></button>
+                <button class="heart-photo" data-index="7"><img src="images/image.jpg"></button>
+                <button class="heart-photo" data-index="8"><img src="images/image.jpg"></button>
+                <button class="heart-photo" data-index="9"><img src="images/image.jpg"></button>
+            </div>
+            <div class="heart-row">
+                <button class="heart-photo" data-index="10"><img src="images/image.jpg"></button>
+                <button class="heart-photo" data-index="11"><img src="images/image.jpg"></button>
+                <button class="heart-photo" data-index="12"><img src="images/image.jpg"></button>
+                <button class="heart-photo" data-index="13"><img src="images/image.jpg"></button>
+                <button class="heart-photo" data-index="14"><img src="images/image.jpg"></button>
+                <button class="heart-photo" data-index="15"><img src="images/image.jpg"></button>
+            </div>
+            <div class="heart-row">
+                <button class="heart-photo" data-index="16"><img src="images/image.jpg"></button>
+                <button class="heart-photo" data-index="17"><img src="images/image.jpg"></button>
+                <button class="heart-photo" data-index="18"><img src="images/image.jpg"></button>
+                <button class="heart-photo" data-index="19"><img src="images/image.jpg"></button>
+                <button class="heart-photo" data-index="20"><img src="images/image.jpg"></button>
+            </div>
+            <div class="heart-row">
+                <button class="heart-photo" data-index="21"><img src="images/image.jpg"></button>
+                <button class="heart-photo" data-index="22"><img src="images/image.jpg"></button>
+                <button class="heart-photo" data-index="23"><img src="images/image.jpg"></button>
+            </div>
+            <div class="heart-row finale-trigger">
+                <button class="heart-photo" data-index="24" id="finalPhoto"><img src="images/image.jpg"></button>
+            </div>
+    </div>
+    <div id="finalMessage">
+        <h1>Happy Birthday Kovidha!</h1>
+        <p>Here's to another year of laughter, late-night chats, and being us.</p>
+    </div>
+</section>
+
+<script src="script.js"></script>
+</body>
+</html>
