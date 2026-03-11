@@ -1,645 +1,634 @@
-// ============================================
-// PHASE 1: GIFT ENTRANCE
-// ============================================
-const music = document.getElementById("music");
-const toggle = document.getElementById("musicToggle");
-const phase1 = document.getElementById("phase1");
-const giftBox = document.getElementById("giftBox");
-const giftBow = document.getElementById("giftBow");
-const musicModal = document.getElementById("musicModal");
-const musicToggle2 = document.getElementById("musicToggle2");
-const beginJourneyBtn = document.getElementById("beginJourneyBtn");
-const stardustCanvas = document.getElementById("stardustCanvas");
-const bigBangCanvas = document.getElementById("bigBangCanvas");
+/**
+ * Midnight Pastel - Luxury Birthday Experience
+ * Comprehensive Interactive Script
+ */
 
-let playing = false;
-let isUnwrapped = false;
-let isHovering = false;
-let stardustAnimationId = null;
+// ============================================
+// GLOBAL VARIABLES
+// ============================================
+const state = {
+    currentPhase: 1,
+    musicPlaying: false,
+    phases: [],
+    isTransitioning: false,
+    hasBegun: false
+};
 
-// Stardust Particle System
-const stardustCtx = stardustCanvas.getContext("2d");
+// ============================================
+// DOM ELEMENTS
+// ============================================
+const elements = {
+    body: document.body,
+    musicToggle: document.getElementById('music-toggle'),
+    bgMusic: document.getElementById('bg-music'),
+    cursorTrail: document.getElementById('cursor-trail'),
+    stardustCanvas: document.getElementById('stardust-canvas'),
+    fireworksCanvas: document.getElementById('fireworks-canvas'),
+    giftBox: document.getElementById('gift-box'),
+    giftBow: document.getElementById('gift-bow'),
+    giftLid: document.getElementById('gift-lid'),
+    giftModal: document.getElementById('gift-modal'),
+    beginBtn: document.getElementById('begin-btn'),
+    bigBang: document.getElementById('big-bang'),
+    book: document.getElementById('book'),
+    closeBookBtn: document.getElementById('close-book'),
+    lanternsContainer: document.getElementById('lanterns'),
+    heartWall: document.getElementById('heart-wall'),
+    finalMessage: document.getElementById('final-message'),
+    phase1: document.getElementById('phase-1'),
+    phase2: document.getElementById('phase-2'),
+    phase3: document.getElementById('phase-3'),
+    phase4: document.getElementById('phase-4')
+};
+
+// Canvas contexts
+let stardustCtx, fireworksCtx;
+let fireworks = [];
+
+// ============================================
+// INITIALIZATION
+// ============================================
+document.addEventListener('DOMContentLoaded', () => {
+    initCanvas();
+    initCursor();
+    initMusicToggle();
+    initGiftBox();
+    initStations();
+    initBook();
+    initLanterns();
+    initHeartPolaroids();
+    initScrollDissolution();
+    
+    // Store last scroll position
+    state.lastScrollPosition = window.pageYOffset;
+    
+    // Disable upward scrolling
+    window.addEventListener('scroll', handleScroll);
+    
+    console.log('Midnight Pastel - Birthday Experience Loaded!');
+});
+
+// ============================================
+// CANVAS SETUP
+// ============================================
+function initCanvas() {
+    // Stardust Canvas
+    stardustCtx = elements.stardustCanvas.getContext('2d');
+    resizeCanvas(elements.stardustCanvas, stardustCtx);
+    
+    // Fireworks Canvas
+    fireworksCtx = elements.fireworksCanvas.getContext('2d');
+    resizeCanvas(elements.fireworksCanvas, fireworksCtx);
+    
+    window.addEventListener('resize', () => {
+        resizeCanvas(elements.stardustCanvas, stardustCtx);
+        resizeCanvas(elements.fireworksCanvas, fireworksCtx);
+    });
+    
+    // Start animation loops
+    animateStardust();
+    animateFireworks();
+}
+
+function resizeCanvas(canvas, ctx) {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    ctx.canvas.width = canvas.width;
+    ctx.canvas.height = canvas.height;
+}
+
+// ============================================
+// CUSTOM CURSOR WITH STARDUST TRAIL
+// ============================================
+function initCursor() {
+    const trail = elements.cursorTrail;
+    
+    document.addEventListener('mousemove', (e) => {
+        // Move cursor trail container
+        trail.style.left = e.clientX + 'px';
+        trail.style.top = e.clientY + 'px';
+        
+        // Create particle
+        createCursorParticle(e.clientX, e.clientY);
+    });
+    
+    // Hide default cursor on the body, show on interactive elements
+    elements.body.style.cursor = 'none';
+    trail.style.display = 'block';
+}
+
+function createCursorParticle(x, y) {
+    const particle = document.createElement('div');
+    particle.className = 'cursor-particle';
+    particle.style.left = x + 'px';
+    particle.style.top = y + 'px';
+    particle.style.position = 'fixed';
+    particle.style.pointerEvents = 'none';
+    particle.style.zIndex = '9998';
+    
+    document.body.appendChild(particle);
+    
+    // Remove after animation
+    setTimeout(() => {
+        particle.remove();
+    }, 600);
+}
+
+// ============================================
+// STARDUST PARTICLE SYSTEM
+// ============================================
 let stardustParticles = [];
 
-function resizeStardustCanvas() {
-    stardustCanvas.width = window.innerWidth;
-    stardustCanvas.height = window.innerHeight;
-}
-resizeStardustCanvas();
-window.addEventListener("resize", resizeStardustCanvas);
-
-class StardustParticle {
-    constructor(x, y) {
-        this.x = x;
-        this.y = y;
-        this.size = Math.random() * 3 + 1;
-        this.speedX = (Math.random() - 0.5) * 2;
-        this.speedY = (Math.random() - 0.5) * 2;
-        this.life = 1;
-        this.decay = Math.random() * 0.02 + 0.01;
-        this.color = `hsl(${Math.random() * 60 + 30}, 100%, ${Math.random() * 30 + 60}%)`;
-    }
-    update() {
-        this.x += this.speedX;
-        this.y += this.speedY;
-        this.life -= this.decay;
-        this.size *= 0.98;
-    }
-    draw() {
-        stardustCtx.beginPath();
-        stardustCtx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-        stardustCtx.fillStyle = this.color;
-        stardustCtx.globalAlpha = this.life;
-        stardustCtx.fill();
-        stardustCtx.globalAlpha = 1;
-    }
-}
-
-function createStardustTrail() {
-    if (!isHovering || isUnwrapped) return;
-    const rect = giftBox.getBoundingClientRect();
-    for (let i = 0; i < 3; i++) {
-        stardustParticles.push(new StardustParticle(
-            rect.left + rect.width / 2 + (Math.random() - 0.5) * 100,
-            rect.top + rect.height / 2 + (Math.random() - 0.5) * 100
-        ));
-    }
-}
-
 function animateStardust() {
-    stardustCtx.clearRect(0, 0, stardustCanvas.width, stardustCanvas.height);
-    createStardustTrail();
-    stardustParticles = stardustParticles.filter(p => p.life > 0);
-    stardustParticles.forEach(p => { p.update(); p.draw(); });
-    if (isHovering && !isUnwrapped) {
-        stardustAnimationId = requestAnimationFrame(animateStardust);
-    }
-}
-
-function startStardust() {
-    stardustCanvas.classList.add("active");
-    isHovering = true;
-    animateStardust();
-}
-
-function stopStardust() {
-    isHovering = false;
-    if (stardustAnimationId) cancelAnimationFrame(stardustAnimationId);
-    setTimeout(() => stardustCanvas.classList.remove("active"), 500);
-}
-
-// Proximity Sensor
-document.addEventListener("mousemove", (e) => {
-    if (isUnwrapped) return;
-    const rect = giftBox.getBoundingClientRect();
-    const boxCenterX = rect.left + rect.width / 2;
-    const boxCenterY = rect.top + rect.height / 2;
-    const distance = Math.sqrt(Math.pow(e.clientX - boxCenterX, 2) + Math.pow(e.clientY - boxCenterY, 2));
-    if (distance < 200) {
-        if (!isHovering) { startStardust(); giftBox.style.transform = "scale(1.2)"; }
-    } else {
-        if (isHovering) { stopStardust(); giftBox.style.transform = "scale(1)"; }
-    }
-});
-
-// Bow Click
-giftBow.addEventListener("click", (e) => {
-    e.stopPropagation();
-    if (isUnwrapped) return;
-    isUnwrapped = true;
-    stopStardust();
-    document.querySelector(".gift-hint").style.display = "none";
+    stardustCtx.clearRect(0, 0, elements.stardustCanvas.width, elements.stardustCanvas.height);
     
-    const segmentLeft = document.querySelector(".segment-left");
-    const segmentRight = document.querySelector(".segment-right");
-    const giftLid = document.getElementById("giftLid");
+    // Add new particle occasionally
+    if (Math.random() < 0.08) {
+        stardustParticles.push(createStardustParticle());
+    }
     
-    segmentLeft.style.left = "25%";
-    segmentRight.style.left = "75%";
-    segmentLeft.classList.add("falling");
-    segmentRight.classList.add("falling");
-    giftBow.style.opacity = "0";
-    
-    setTimeout(() => giftLid.classList.add("opening"), 500);
-    setTimeout(() => musicModal.classList.add("active"), 2000);
-});
-
-// Music Toggle
-musicToggle2.addEventListener("change", () => {
-    if (musicToggle2.checked) {
-        music.play().catch(() => {});
-        toggle.innerText = "🔊";
-        playing = true;
-        beginJourneyBtn.classList.add("visible");
-    } else {
-        music.pause();
-        toggle.innerText = "🔈";
-        playing = false;
-        beginJourneyBtn.classList.remove("visible");
-    }
-});
-
-toggle.onclick = () => {
-    if (!playing) {
-        music.play().catch(() => {});
-        toggle.innerText = "🔊";
-        playing = true;
-        musicToggle2.checked = true;
-        if (isUnwrapped) beginJourneyBtn.classList.add("visible");
-    } else {
-        music.pause();
-        toggle.innerText = "🔈";
-        playing = false;
-        musicToggle2.checked = false;
-        beginJourneyBtn.classList.remove("visible");
-    }
-};
-
-// Big Bang Transition
-const bigBangCtx = bigBangCanvas.getContext("2d");
-let bigBangParticles = [];
-let bigBangPhase = "idle";
-
-function resizeBigBangCanvas() {
-    bigBangCanvas.width = window.innerWidth;
-    bigBangCanvas.height = window.innerHeight;
-}
-resizeBigBangCanvas();
-window.addEventListener("resize", resizeBigBangCanvas);
-
-class BigBangParticle {
-    constructor(x, y, angle, speed, isExplosion = false) {
-        this.x = x; this.y = y; this.angle = angle; this.speed = speed;
-        this.size = isExplosion ? Math.random() * 4 + 2 : Math.random() * 8 + 4;
-        this.life = 1;
-        this.decay = isExplosion ? 0.015 : 0.03;
-        this.isExplosion = isExplosion;
-    }
-    update() {
-        if (this.isExplosion) {
-            this.x += Math.cos(this.angle) * this.speed * 3;
-            this.y += Math.sin(this.angle) * this.speed * 3;
-            this.size *= 1.02;
-        } else {
-            this.x += Math.cos(this.angle) * this.speed;
-            this.y += Math.sin(this.angle) * this.speed;
+    // Update and draw particles
+    stardustParticles = stardustParticles.filter(p => {
+        p.y -= p.speed;
+        p.opacity -= 0.003;
+        p.size *= 0.995;
+        
+        if (p.opacity <= 0 || p.size <= 0.5) {
+            return false;
         }
-        this.life -= this.decay;
-    }
-    draw() {
-        const gradient = bigBangCtx.createRadialGradient(this.x, this.y, 0, this.x, this.y, this.size * 2);
-        gradient.addColorStop(0, `rgba(255, 215, 0, ${this.life})`);
-        gradient.addColorStop(1, "transparent");
-        bigBangCtx.beginPath();
-        bigBangCtx.arc(this.x, this.y, this.size * 2, 0, Math.PI * 2);
-        bigBangCtx.fillStyle = gradient;
-        bigBangCtx.fill();
-    }
-}
-
-function triggerBigBang() {
-    const centerX = window.innerWidth / 2;
-    const centerY = window.innerHeight / 2;
-    bigBangCanvas.classList.add("active");
-    bigBangPhase = "implosion";
-    
-    for (let i = 0; i < 100; i++) {
-        const angle = (Math.PI * 2 / 100) * i;
-        bigBangParticles.push(new BigBangParticle(
-            centerX + Math.cos(angle) * (200 + Math.random() * 500),
-            centerY + Math.sin(angle) * (200 + Math.random() * 500),
-            angle, -5, false
-        ));
-    }
-    
-    setTimeout(() => {
-        bigBangPhase = "explosion";
-        bigBangParticles = [];
-        for (let i = 0; i < 300; i++) {
-            bigBangParticles.push(new BigBangParticle(
-                centerX, centerY, Math.random() * Math.PI * 2,
-                Math.random() * 15 + 5, true
-            ));
-        }
-    }, 1000);
-    
-    animateBigBang();
-}
-
-function animateBigBang() {
-    bigBangCtx.clearRect(0, 0, bigBangCanvas.width, bigBangCanvas.height);
-    
-    if (bigBangPhase === "implosion") {
-        const centerX = window.innerWidth / 2;
-        const centerY = window.innerHeight / 2;
-        const whitePoint = bigBangCtx.createRadialGradient(centerX, centerY, 0, centerX, centerY, 30);
-        whitePoint.addColorStop(0, "rgba(255, 255, 255, 1)");
-        whitePoint.addColorStop(1, "transparent");
-        bigBangCtx.beginPath();
-        bigBangCtx.arc(centerX, centerY, 30, 0, Math.PI * 2);
-        bigBangCtx.fillStyle = whitePoint;
-        bigBangCtx.fill();
-    }
-    
-    bigBangParticles = bigBangParticles.filter(p => p.life > 0);
-    bigBangParticles.forEach(p => { p.update(); p.draw(); });
-    
-    if (bigBangParticles.length > 0 || bigBangPhase === "implosion") {
-        requestAnimationFrame(animateBigBang);
-    } else {
-        setTimeout(cleanupAndProceed, 500);
-    }
-}
-
-function cleanupAndProceed() {
-    bigBangCanvas.classList.remove("active");
-    phase1.classList.add("hidden");
-    setTimeout(() => {
-        phase1.style.display = "none";
-        document.body.style.overflowY = "auto";
-        document.getElementById("journey").style.display = "block";
-        initJourney();
-    }, 800);
-}
-
-beginJourneyBtn.addEventListener("click", () => {
-    document.body.style.overflowY = "hidden";
-    triggerBigBang();
-});
-
-// ============================================
-// PHASE 2: ASYMMETRICAL JOURNEY
-// ============================================
-const journey = document.getElementById("journey");
-const stations = document.querySelectorAll(".quote-station");
-let stationsVisible = 0;
-let scrollTimeout;
-
-// Initialize Journey with IntersectionObserver
-function initJourney() {
-    // Start observing stations
-    stations.forEach(station => {
-        station.style.opacity = "0";
-        station.style.transform = "translateY(50px)";
-        observer.observe(station);
+        
+        stardustCtx.beginPath();
+        stardustCtx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+        stardustCtx.fillStyle = `rgba(255, 215, 0, ${p.opacity})`;
+        stardustCtx.fill();
+        
+        return true;
     });
     
-    // Setup mouse tilt for photo stacks
-    setupMouseTilt();
+    requestAnimationFrame(animateStardust);
 }
 
-// IntersectionObserver for scroll-based animations
-const observerOptions = {
-    root: null,
-    rootMargin: "0px",
-    threshold: 0.3
-};
-
-const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-        if (entry.isIntersecting) {
-            // Station entering viewport - animate in
-            entry.target.style.transition = "opacity 0.8s ease-out, transform 0.8s ease-out";
-            entry.target.style.opacity = "1";
-            entry.target.style.transform = "translateY(0)";
-            stationsVisible++;
-        } else if (entry.target.getBoundingClientRect().top < 0 && !entry.target.classList.contains("dissolved")) {
-            // Station leaving top of viewport - dissolve and remove
-            dissolveStation(entry.target);
-        }
-    });
-}, observerOptions);
-
-// Dissolve station when scrolled past
-function dissolveStation(station) {
-    if (station.classList.contains("dissolved")) return;
-    
-    station.classList.add("dissolved");
-    
-    // After animation, remove element and scroll lock
-    setTimeout(() => {
-        station.style.display = "none";
-        station.remove();
-        
-        // Force scroll position to prevent seeing blank space
-        window.scrollTo(0, window.scrollY);
-        
-        // Check if all stations are dissolved
-        const remainingStations = document.querySelectorAll(".quote-station:not(.dissolved)");
-        if (remainingStations.length === 0) {
-            showLibraryButton();
-        }
-    }, 1000);
+function createStardustParticle() {
+    return {
+        x: Math.random() * elements.stardustCanvas.width,
+        y: elements.stardustCanvas.height + 10,
+        size: Math.random() * 2.5 + 0.5,
+        speed: Math.random() * 1.5 + 0.5,
+        opacity: Math.random() * 0.4 + 0.4
+    };
 }
-
-// Mouse tilt effect for photo stacks
-function setupMouseTilt() {
-    const photoStacks = document.querySelectorAll(".photo-stack");
-    
-    photoStacks.forEach(stack => {
-        const topPolaroid = stack.querySelector(".polaroid.top");
-        
-        stack.addEventListener("mousemove", (e) => {
-            const rect = stack.getBoundingClientRect();
-            const x = e.clientX - rect.left;
-            const y = e.clientY - rect.top;
-            
-            // Calculate tilt based on mouse position
-            const tiltX = (y / rect.height - 0.5) * 20;
-            const tiltY = (x / rect.width - 0.5) * -20;
-            
-            topPolaroid.style.transform = `rotate(${5 + tiltY}deg) translateZ(40px) scale(1.1)`;
-        });
-        
-        stack.addEventListener("mouseleave", () => {
-            topPolaroid.style.transform = "rotate(5deg) translateZ(20px)";
-        });
-    });
-}
-
-// Show library button when all stations are gone
-function showLibraryButton() {
-    journey.classList.add("show-library");
-}
-
-// Library button handler
-document.getElementById("toLibraryBtn").onclick = () => {
-    journey.style.display = "none";
-    document.getElementById("memory").style.display = "flex";
-};
 
 // ============================================
-// PHASE 3: MEMORY BOOK
+// FIREWORKS SYSTEM
 // ============================================
-const memoriesBook = document.getElementById("memoriesBook");
-const book = document.getElementById("book");
-const bookCover = document.getElementById("bookCover");
-const pages = document.querySelectorAll(".page");
-const memorySection = document.getElementById("memory");
-let bookOpen = false;
-let currentPage = 0;
-
-const pageControls = document.querySelectorAll(".book-controls");
-pageControls.forEach(ctrl => ctrl.classList.remove("visible"));
-
-memoriesBook.onclick = (e) => {
-    e.stopPropagation();
-    memorySection.scrollIntoView({ behavior: "smooth" });
-    setTimeout(() => {
-        memoriesBook.style.opacity = "0";
-        memoriesBook.style.pointerEvents = "none";
-        setTimeout(() => book.classList.add("visible"), 300);
-    }, 300);
-};
-
-bookCover.onclick = (e) => {
-    e.stopPropagation();
-    if (!bookOpen) {
-        bookOpen = true;
-        book.classList.add("open");
-        bookCover.querySelector(".open-hint").style.display = "none";
-        setTimeout(() => pageControls[0].classList.add("visible"), 1000);
-    }
-};
-
-function closeBook() {
-    bookOpen = false;
-    book.classList.remove("open");
-    pageControls.forEach(ctrl => ctrl.classList.remove("visible"));
-    pages.forEach(page => page.classList.remove("active"));
-    currentPage = 0;
-    pages[0].classList.add("active");
-    memorySection.classList.add("hidden");
-    setTimeout(() => {
-        memorySection.style.display = "none";
-        showFinale();
-    }, 1000);
-}
-
-function nextPage() {
-    pageControls[currentPage].classList.remove("visible");
-    pages[currentPage].classList.remove("active");
-    currentPage = (currentPage + 1) % pages.length;
-    pages[currentPage].classList.add("active");
-    setTimeout(() => pageControls[currentPage].classList.add("visible"), 100);
-}
-
-document.querySelectorAll("#closeBook, #closeBook2, #closeBook3").forEach(btn => {
-    btn.onclick = (e) => { e.stopPropagation(); closeBook(); };
-});
-
-document.querySelectorAll("#nextPage, #nextPage2, #nextPage3").forEach(btn => {
-    btn.onclick = (e) => { e.stopPropagation(); nextPage(); };
-});
-
-// ============================================
-// PHASE 4: HEART FINALE
-// ============================================
-function showFinale() {
-    const finale = document.getElementById("finale");
-    finale.classList.add("visible");
-    finale.style.display = "flex";
-}
-
-// Lantern Canvas
-const lanternCanvas = document.getElementById("lanternCanvas");
-const lanternCtx = lanternCanvas.getContext("2d");
-let lanterns = [];
-
-function resizeLantern() {
-    lanternCanvas.width = window.innerWidth;
-    lanternCanvas.height = window.innerHeight;
-}
-resizeLantern();
-window.addEventListener("resize", resizeLantern);
-
-for (let i = 0; i < 150; i++) {
-    lanterns.push({
-        x: Math.random() * lanternCanvas.width,
-        y: Math.random() * lanternCanvas.height,
-        size: 2 + Math.random() * 3,
-        speed: 0.3 + Math.random() * 0.7,
-        flicker: Math.random() * Math.PI * 2
-    });
-}
-
-function animateLanterns() {
-    lanternCtx.clearRect(0, 0, lanternCanvas.width, lanternCanvas.height);
-    lanterns.forEach(l => {
-        l.flicker += 0.05;
-        const flicker = Math.sin(l.flicker) * 0.2 + 0.8;
-        
-        const gradient = lanternCtx.createRadialGradient(l.x, l.y, 0, l.x, l.y, l.size * 8);
-        gradient.addColorStop(0, `rgba(255, 215, 0, ${flicker})`);
-        gradient.addColorStop(1, "transparent");
-        
-        lanternCtx.beginPath();
-        lanternCtx.arc(l.x, l.y, l.size * 8, 0, Math.PI * 2);
-        lanternCtx.fillStyle = gradient;
-        lanternCtx.fill();
-        
-        lanternCtx.beginPath();
-        lanternCtx.arc(l.x, l.y, l.size, 0, Math.PI * 2);
-        lanternCtx.fillStyle = `rgba(255, 230, 150, ${flicker})`;
-        lanternCtx.fill();
-        
-        l.y -= l.speed;
-        if (l.y < -20) {
-            l.y = lanternCanvas.height + 20;
-            l.x = Math.random() * lanternCanvas.width;
-        }
-    });
-    requestAnimationFrame(animateLanterns);
-}
-animateLanterns();
-
-// Fireworks
-const fireCanvas = document.getElementById("fireworks");
-const fireCtx = fireCanvas.getContext("2d");
-let fireworks = [];
-let particles = [];
-
-function resizeFire() {
-    fireCanvas.width = window.innerWidth;
-    fireCanvas.height = window.innerHeight;
-}
-resizeFire();
-window.addEventListener("resize", resizeFire);
-
-class Firework {
-    constructor(x, y) {
-        this.x = x; this.y = y; this.exploded = false;
-        this.vx = (Math.random() - 0.5) * 3;
-        this.vy = -8 - Math.random() * 4;
-    }
-    update() {
-        if (!this.exploded) {
-            this.vy += 0.15;
-            this.x += this.vx;
-            this.y += this.vy;
-            for (let i = 0; i < 3; i++) {
-                particles.push(new Particle(this.x, this.y, true));
-            }
-            if (this.vy >= 0) this.explode();
-        }
-    }
-    explode() {
-        this.exploded = true;
-        for (let i = 0; i < 60; i++) {
-            const angle = (Math.PI * 2 / 60) * i;
-            const speed = 2 + Math.random() * 5;
-            particles.push(new Particle(this.x, this.y, false, {
-                x: Math.cos(angle) * speed,
-                y: Math.sin(angle) * speed
-            }));
-        }
-    }
-    draw() {
-        if (!this.exploded) {
-            fireCtx.beginPath();
-            fireCtx.arc(this.x, this.y, 3, 0, Math.PI * 2);
-            fireCtx.fillStyle = "#FFD700";
-            fireCtx.fill();
-        }
-    }
-}
-
-class Particle {
-    constructor(x, y, isTrail, velocity) {
-        this.x = x; this.y = y; this.life = 1;
-        this.isTrail = isTrail;
-        this.decay = isTrail ? 0.05 : 0.02;
-        this.velocity = velocity || { x: (Math.random() - 0.5) * 2, y: (Math.random() - 0.5) * 2 };
-    }
-    update() {
-        this.velocity.y += 0.05;
-        this.x += this.velocity.x;
-        this.y += this.velocity.y;
-        this.life -= this.decay;
-    }
-    draw() {
-        fireCtx.beginPath();
-        fireCtx.arc(this.x, this.y, this.isTrail ? 2 : 3, 0, Math.PI * 2);
-        fireCtx.fillStyle = `rgba(255, 215, 0, ${this.life})`;
-        fireCtx.fill();
-    }
-}
-
 function animateFireworks() {
-    fireCtx.fillStyle = "rgba(0, 0, 0, 0.1)";
-    fireCtx.fillRect(0, 0, fireCanvas.width, fireCanvas.height);
+    fireworksCtx.clearRect(0, 0, elements.fireworksCanvas.width, elements.fireworksCanvas.height);
     
-    if (Math.random() < 0.02) {
-        fireworks.push(new Firework(
-            Math.random() * fireCanvas.width * 0.8 + fireCanvas.width * 0.1,
-            fireCanvas.height * 0.3 + Math.random() * fireCanvas.height * 0.3
-        ));
-    }
-    
-    fireworks = fireworks.filter(fw => !fw.exploded);
-    fireworks.forEach(fw => { fw.update(); fw.draw(); });
-    
-    particles = particles.filter(p => p.life > 0);
-    particles.forEach(p => { p.update(); p.draw(); });
+    // Update and draw fireworks
+    fireworks = fireworks.filter(fw => {
+        fw.update();
+        fw.draw(fireworksCtx);
+        return fw.life > 0;
+    });
     
     requestAnimationFrame(animateFireworks);
 }
-animateFireworks();
 
-// Heart Photo Interactions
-const heartPhotos = document.querySelectorAll(".heart-photo");
-
-heartPhotos.forEach((photo) => {
-    photo.addEventListener("click", (e) => {
-        e.stopPropagation();
-        photo.classList.add("clicked");
-        setTimeout(() => photo.classList.remove("clicked"), 500);
-        
-        const rect = photo.getBoundingClientRect();
-        for (let i = 0; i < 3; i++) {
-            setTimeout(() => {
-                fireworks.push(new Firework(
-                    rect.left + rect.width / 2 + (Math.random() - 0.5) * 100,
-                    rect.top + rect.height / 2 + (Math.random() - 0.5) * 50
-                ));
-            }, i * 150);
-        }
-        
-        if (photo.id === "finalPhoto") {
-            triggerFinale();
-        }
-    });
-});
-
-function triggerFinale() {
-    startBalloons();
-    for (let i = 0; i < 25; i++) {
-        setTimeout(() => {
-            fireworks.push(new Firework(
-                window.innerWidth / 2 + (Math.random() - 0.5) * window.innerWidth * 0.9,
-                window.innerHeight / 3 + Math.random() * window.innerHeight / 3
-            ));
-        }, i * 150);
+function createFirework(x, y) {
+    const particles = [];
+    const colors = ['#ff4d4d', '#F8C8DC', '#E6E6FA', '#ffd700', '#ff6b6b', '#ffa500'];
+    
+    for (let i = 0; i < 80; i++) {
+        const angle = (Math.PI * 2 * i) / 80;
+        const speed = Math.random() * 4 + 1.5;
+        particles.push({
+            x: x,
+            y: y,
+            vx: Math.cos(angle) * speed,
+            vy: Math.sin(angle) * speed,
+            color: colors[Math.floor(Math.random() * colors.length)],
+            life: 1,
+            decay: Math.random() * 0.015 + 0.008
+        });
     }
-    setTimeout(() => {
-        document.getElementById("finalMessage").classList.add("visible");
-        document.getElementById("finale").classList.add("sunrise");
-    }, 3000);
+    
+    return {
+        particles,
+        update() {
+            this.particles.forEach(p => {
+                p.x += p.vx;
+                p.y += p.vy;
+                p.vy += 0.04;
+                p.life -= p.decay;
+            });
+            this.particles = this.particles.filter(p => p.life > 0);
+        },
+        draw(ctx) {
+            this.particles.forEach(p => {
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, 2.5 * p.life, 0, Math.PI * 2);
+                ctx.fillStyle = p.color;
+                ctx.globalAlpha = p.life;
+                ctx.fill();
+                ctx.globalAlpha = 1;
+            });
+        },
+        get life() {
+            return this.particles.length > 0 ? this.particles[0].life : 0;
+        }
+    };
 }
 
-function startBalloons() {
-    const finale = document.getElementById("finale");
-    setInterval(() => {
-        if (!document.getElementById("finalMessage").classList.contains("visible")) return;
+function triggerFireworkShow() {
+    for (let i = 0; i < 12; i++) {
+        setTimeout(() => {
+            const x = Math.random() * (elements.fireworksCanvas.width * 0.7) + (elements.fireworksCanvas.width * 0.15);
+            const y = Math.random() * (elements.fireworksCanvas.height * 0.4) + (elements.fireworksCanvas.height * 0.1);
+            fireworks.push(createFirework(x, y));
+        }, i * 250);
+    }
+}
+
+// ============================================
+// MUSIC TOGGLE
+// ============================================
+function initMusicToggle() {
+    elements.musicToggle.addEventListener('click', toggleMusic);
+}
+
+function toggleMusic() {
+    if (state.musicPlaying) {
+        elements.bgMusic.pause();
+        elements.musicToggle.classList.remove('playing');
+        state.musicPlaying = false;
+    } else {
+        elements.bgMusic.play().then(() => {
+            elements.musicToggle.classList.add('playing');
+            state.musicPlaying = true;
+        }).catch(() => {
+            console.log('Click to enable music');
+        });
+    }
+}
+
+// ============================================
+// PHASE 1: GIFT BOX INTERACTIONS
+// ============================================
+function initGiftBox() {
+    // Bow click - untie animation
+    elements.giftBow.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (!state.hasBegun) {
+            untieRibbon();
+        }
+    });
+    
+    // Also allow clicking the gift box
+    elements.giftBox.addEventListener('click', (e) => {
+        if (!state.hasBegun && e.target === elements.giftBox || e.target.closest('.gift-box')) {
+            untieRibbon();
+        }
+    });
+    
+    // Begin button
+    elements.beginBtn.addEventListener('click', () => {
+        triggerBigBang();
+    });
+    
+    // Magnetic hover effect
+    elements.giftBox.addEventListener('mousemove', handleMagneticHover);
+    elements.giftBox.addEventListener('mouseleave', handleMagneticLeave);
+}
+
+function untieRibbon() {
+    const bow = elements.giftBow;
+    const ribbonV = document.getElementById('ribbon-vertical');
+    const ribbonH = document.getElementById('ribbon-horizontal');
+    
+    // Animate bow falling
+    bow.classList.add('untying');
+    ribbonV.classList.add('untying');
+    ribbonH.classList.add('untying');
+    
+    // Open lid after ribbon animation
+    setTimeout(() => {
+        elements.giftLid.classList.add('open');
         
-        const balloon = document.createElement("div");
-        balloon.className = "floating-balloon";
-        balloon.innerHTML = Math.random() > 0.5 ? "❤️" : "🎈";
-        balloon.style.left = Math.random() * 100 + "vw";
-        balloon.style.animationDuration = (8 + Math.random() * 4) + "s";
-        finale.appendChild(balloon);
-        setTimeout(() => balloon.remove(), 12000);
+        // Show modal after lid opens
+        setTimeout(() => {
+            elements.giftModal.classList.add('show');
+        }, 600);
     }, 500);
 }
 
-console.log("Kovidha's Birthday Journey Loaded!");
+function handleMagneticHover(e) {
+    const rect = elements.giftBox.getBoundingClientRect();
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+    
+    const distance = Math.sqrt(
+        Math.pow(e.clientX - centerX, 2) + 
+        Math.pow(e.clientY - centerY, 2)
+    );
+    
+    if (distance < 200) {
+        const scale = 1 + (200 - distance) / 600;
+        elements.giftBox.style.transform = `translate(-50%, -50%) scale(${Math.min(scale, 1.15)})`;
+    }
+}
+
+function handleMagneticLeave() {
+    elements.giftBox.style.transform = 'translate(-50%, -50%) scale(1)';
+}
+
+function triggerBigBang() {
+    state.hasBegun = true;
+    
+    // Hide modal
+    elements.giftModal.classList.remove('show');
+    
+    // Implode gift box
+    elements.giftBox.style.transition = 'all 0.4s ease';
+    elements.giftBox.style.transform = 'translate(-50%, -50%) scale(0)';
+    elements.giftBox.style.opacity = '0';
+    
+    // Hide intro text
+    const introText = document.querySelector('.intro-text');
+    if (introText) {
+        introText.style.opacity = '0';
+    }
+    
+    // Trigger big bang
+    setTimeout(() => {
+        elements.bigBang.classList.add('explode');
+        
+        // Transition to Phase 2
+        setTimeout(() => {
+            state.currentPhase = 2;
+            // Remove phase 1 from DOM
+            if (elements.phase1) {
+                elements.phase1.style.display = 'none';
+            }
+            elements.bigBang.classList.remove('explode');
+            
+            // Scroll to phase 2
+            if (elements.phase2) {
+                elements.phase2.scrollIntoView({ behavior: 'auto' });
+            }
+        }, 1400);
+    }, 300);
+}
+
+// ============================================
+// PHASE 2: STATIONS (PARALLAX)
+// ============================================
+function initStations() {
+    const polaroids = document.querySelectorAll('.polaroid[data-tilt]');
+    
+    document.addEventListener('mousemove', (e) => {
+        const centerX = window.innerWidth / 2;
+        const centerY = window.innerHeight / 2;
+        
+        polaroids.forEach(polaroid => {
+            const rect = polaroid.getBoundingClientRect();
+            if (rect.top < window.innerHeight && rect.bottom > 0) {
+                const deltaX = (e.clientX - centerX) / centerX;
+                const deltaY = (e.clientY - centerY) / centerY;
+                
+                const moveX = deltaX * 8;
+                const moveY = deltaY * 8;
+                
+                polaroid.style.transform = `translate(${moveX}px, ${moveY}px)`;
+            }
+        });
+    });
+}
+
+// ============================================
+// PHASE 3: 3D BOOK
+// ============================================
+function initBook() {
+    elements.book.addEventListener('click', toggleBook);
+    elements.closeBookBtn.addEventListener('click', closeBook);
+}
+
+function toggleBook() {
+    if (elements.book.classList.contains('opened')) {
+        return;
+    }
+    
+    elements.book.classList.add('opened');
+    
+    // Show close button
+    setTimeout(() => {
+        elements.closeBookBtn.classList.add('show');
+    }, 800);
+}
+
+function closeBook() {
+    elements.closeBookBtn.classList.remove('show');
+    
+    // Close book
+    elements.book.classList.remove('opened');
+    
+    // Dissolve phase 3 and go to phase 4
+    setTimeout(() => {
+        if (elements.phase3) {
+            elements.phase3.style.transition = 'opacity 0.8s ease, filter 0.8s ease';
+            elements.phase3.style.opacity = '0';
+            elements.phase3.style.filter = 'blur(20px)';
+        }
+        
+        setTimeout(() => {
+            if (elements.phase3) {
+                elements.phase3.style.display = 'none';
+            }
+            state.currentPhase = 4;
+            
+            if (elements.phase4) {
+                elements.phase4.style.display = 'flex';
+                elements.phase4.scrollIntoView({ behavior: 'auto' });
+            }
+        }, 800);
+    }, 500);
+}
+
+// ============================================
+// PHASE 4: LANTERNS & HEART POLAROIDS
+// ============================================
+function initLanterns() {
+    const container = elements.lanternsContainer;
+    
+    for (let i = 0; i < 40; i++) {
+        const lantern = document.createElement('div');
+        lantern.className = 'lantern';
+        lantern.style.left = Math.random() * 100 + '%';
+        lantern.style.animationDelay = Math.random() * 10 + 's';
+        lantern.style.animationDuration = (Math.random() * 3 + 7) + 's';
+        container.appendChild(lantern);
+    }
+}
+
+function initHeartPolaroids() {
+    const polaroids = document.querySelectorAll('.heart-photo');
+    
+    polaroids.forEach((polaroid) => {
+        // Sparkle effect on click
+        polaroid.addEventListener('click', (e) => {
+            if (polaroid.classList.contains('final-trigger')) {
+                // Trigger firework show and final message
+                triggerFireworkShow();
+                showFinalMessage();
+            } else {
+                // Sparkle effect
+                triggerSparkle(e.clientX, e.clientY);
+            }
+        });
+    });
+}
+
+function triggerSparkle(x, y) {
+    for (let i = 0; i < 15; i++) {
+        setTimeout(() => {
+            const sparkleX = x + (Math.random() - 0.5) * 80;
+            const sparkleY = y + (Math.random() - 0.5) * 80;
+            fireworks.push(createFirework(sparkleX, sparkleY));
+        }, i * 40);
+    }
+}
+
+function showFinalMessage() {
+    // Show the final message after a delay
+    setTimeout(() => {
+        elements.finalMessage.classList.add('show');
+    }, 1500);
+}
+
+// ============================================
+// SCROLL DISSOLUTION
+// ============================================
+function initScrollDissolution() {
+    // For Phase 2 stations
+    const stations = document.querySelectorAll('.station');
+    
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (!entry.isIntersecting && entry.boundingClientRect.top < 0) {
+                // Station has been scrolled past - dissolve it
+                const station = entry.target;
+                if (!station.classList.contains('dissolved')) {
+                    dissolveStation(station);
+                }
+            }
+        });
+    }, { threshold: 0 });
+    
+    stations.forEach(station => {
+        observer.observe(station);
+    });
+    
+    // Observe Phase 2 container
+    if (elements.phase2) {
+        const phase2Observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (!entry.isIntersecting && entry.boundingClientRect.top < -100) {
+                    // Phase 2 is fully scrolled past
+                    if (!elements.phase2.classList.contains('dissolved')) {
+                        dissolvePhase(elements.phase2);
+                    }
+                }
+            });
+        }, { threshold: 0 });
+        
+        phase2Observer.observe(elements.phase2);
+    }
+}
+
+function dissolveStation(station) {
+    station.style.transition = 'all 0.6s ease';
+    station.style.opacity = '0';
+    station.style.transform = 'scale(1.1)';
+    station.style.filter = 'blur(15px)';
+    
+    setTimeout(() => {
+        station.style.display = 'none';
+    }, 600);
+}
+
+function dissolvePhase(phase) {
+    phase.classList.add('dissolved');
+    phase.style.transition = 'all 0.8s ease';
+    phase.style.opacity = '0';
+    phase.style.filter = 'blur(20px)';
+    
+    setTimeout(() => {
+        phase.style.display = 'none';
+    }, 800);
+}
+
+// ============================================
+// SCROLL HANDLING - ONE WAY JOURNEY
+// ============================================
+function handleScroll() {
+    const currentScroll = window.pageYPosition || document.documentElement.scrollTop;
+    
+    // Prevent upward scrolling after passing sections
+    if (currentScroll < state.lastScrollPosition && !state.isTransitioning) {
+        // Get all visible phases
+        const visiblePhases = Array.from(document.querySelectorAll('.phase')).filter(p => {
+            const rect = p.getBoundingClientRect();
+            return rect.top < window.innerHeight && rect.bottom > 0 && p.style.display !== 'none';
+        });
+        
+        // Only allow if transitioning
+        if (visiblePhases.length <= 1) {
+            window.scrollTo(0, state.lastScrollPosition);
+        }
+    }
+    
+    state.lastScrollPosition = currentScroll;
+}
+
+// ============================================
+// KEYBOARD NAVIGATION
+// ============================================
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowDown' || e.key === 'PageDown') {
+        e.preventDefault();
+        const nextPhase = state.currentPhase + 1;
+        if (nextPhase <= 4) {
+            const phase = document.querySelector(`[data-phase="${nextPhase}"]`);
+            if (phase) {
+                phase.scrollIntoView({ behavior: 'smooth' });
+            }
+        }
+    }
+    
+    if (e.key === 'ArrowUp' || e.key === 'PageUp') {
+        const prevPhase = state.currentPhase - 1;
+        if (prevPhase >= 1) {
+            const phase = document.querySelector(`[data-phase="${prevPhase}"]`);
+            if (phase) {
+                phase.scrollIntoView({ behavior: 'smooth' });
+            }
+        }
+    }
+});
+
+// ============================================
+// VISIBILITY HANDLING
+// ============================================
+document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+        if (state.musicPlaying) {
+            elements.bgMusic.pause();
+        }
+    } else {
+        if (state.musicPlaying) {
+            elements.bgMusic.play();
+        }
+    }
+});
+
+console.log('All systems initialized!');
+
